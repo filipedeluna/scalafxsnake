@@ -18,6 +18,7 @@ case class SnakeState(private val path: List[Direction], private val squares: Li
   def getSquares: Seq[Rectangle] = squares.map((x, y) => Rectangle(x + 2, y + 2, 16, 16))
   def getHead: (Int, Int) = squares.head
   def getTail: (Int, Int) = squares.last
+  def size: Int = squares.size
 
   def coordsOverlap(coords: (Int, Int)): Boolean = squares.contains(coords)
   def isNearSnake(coords: (Int, Int)): Boolean = squares.exists(s => getDistance(coords, s) < 2)

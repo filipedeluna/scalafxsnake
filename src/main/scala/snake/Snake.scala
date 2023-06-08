@@ -1,18 +1,19 @@
 package snake
 
-import javafx.util.Duration
 import scalafx.Includes.*
 import scalafx.animation.AnimationTimer
 import scalafx.application.JFXApp3
 import scalafx.application.JFXApp3.PrimaryStage
 import scalafx.beans.property.*
-import scalafx.scene.Scene
+import scalafx.scene.control.TextArea
 import scalafx.scene.input.{KeyCode, KeyEvent}
 import scalafx.scene.media.{AudioClip, Media, MediaPlayer}
 import scalafx.scene.paint.Color.*
 import scalafx.scene.shape.Rectangle
-import snake.SnakeState.Direction.*
+import scalafx.scene.text.{Font, Text}
+import scalafx.scene.{Node, Scene}
 import snake.SnakeState.Direction
+import snake.SnakeState.Direction.*
 
 import scala.io.Source
 import scala.util.Random
@@ -39,6 +40,11 @@ object Snake extends JFXApp3 {
       val food: ObjectProperty[Option[(Int, Int)]] = ObjectProperty(None)
       val obstacles: ObjectProperty[List[(Int, Int)]] = ObjectProperty(List.empty)
       val snake: ObjectProperty[SnakeState] = ObjectProperty(SnakeState)
+      val points: Text = Text("0")
+      points.setFont(Font("Verdana", 20.toDouble))
+      points.setOpacity(0.5)
+      points.setX(50)
+      points.setY(50)
 
       // Listener for changing direction
       onKeyPressed = (e: KeyEvent) =>
@@ -58,14 +64,14 @@ object Snake extends JFXApp3 {
 
       AnimationTimer(time => {
         if (time - lastFrameTime.value >= frameDelay.value * 1e6)
-          val maybeFoodRectangle: Option[Rectangle] =
+          val foodRect: Option[Rectangle] =
             food.value.map((x, y) => {
               val foodRect = Rectangle(x + 2, y + 2, 16, 16)
               foodRect.fill = Red
               foodRect
             })
 
-          val obstacleRectangles: List[Rectangle] =
+          val obstacleRects: List[Rectangle] =
             obstacles.value.map((x, y) => {
               val foodRect = Rectangle(x + 2, y + 2, 16, 16)
               foodRect.fill = Blue
@@ -93,21 +99,22 @@ object Snake extends JFXApp3 {
             eatSoundPlayer.play()
 
           content =
-            drawGrid ++ snake.value.getSquares ++ maybeFoodRectangle.toList ++ obstacleRectangles
+            drawGrid ++ foodRect.toList ++ obstacleRects ++ snake.value.getSquares ++ List(points)
 
           while (food.value.isEmpty)
-            val candidate: (Int, Int) = (Random.nextInt(40) * 20, Random.nextInt(20) * 20)
+            val candidate: (Int, Int) = (Random.nextInt(39) * 20, Random.nextInt(39) * 20)
             if (!snake.value.isNearSnake(candidate) && !obstacles.value.contains(candidate))
               food.value = Some(candidate)
 
           if (Random.nextInt(100) >= 94)
-            val obstaclesSize = obstacles.value.size
-            while (obstaclesSize == obstacles.value.size)
-              val candidate: (Int, Int) = (Random.nextInt(40) * 20, Random.nextInt(20) * 20)
+            val oldObstaclesSize = obstacles.value.size
+            while (oldObstaclesSize == obstacles.value.size)
+              val candidate: (Int, Int) = (Random.nextInt(39) * 20, Random.nextInt(39) * 20)
               if (!snake.value.isNearSnake(candidate) && !food.value.contains(candidate))
                 obstacles.value = obstacles.value :+ candidate
 
           lastFrameTime.value = time
+          points.setText(snake.value.getSquares.size.toString)
       }).start()
     }
 
